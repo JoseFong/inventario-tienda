@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  username String @unique
+  password String
+  type     String
+}
+
+model Product {
+  id              Int               @id @default(autoincrement())
+  sku             String            @unique
+  name            String
+  price           Float?
+  hasVariants     Boolean
+  stock           Int?
+  pictureUrl      String?
+  Variation       Variation[]
+  MovementProduct MovementProduct[]
+}
+
+model Variation {
+  id              Int               @id @default(autoincrement())
+  sku             String            @unique
+  name            String
+  price           Float
+  stock           Int
+  pictureUrl      String?
+  product         Product           @relation(fields: [productId], references: [id])
+  productId       Int
+  MovementProduct MovementProduct[]
+}
+
+//Puede ser venta o restock
+model Movement {
+  id              Int               @id @default(autoincrement())
+  type            String
+  changeInMoney   Float
+  date            String
+  time            String
+  MovementProduct MovementProduct[]
+}
+
+model MovementProduct {
+  id          Int        @id @default(autoincrement())
+  product     Product    @relation(fields: [productId], references: [id])
+  movement    Movement   @relation(fields: [movementId], references: [id])
+  quantity    Int
+  productId   Int
+  movementId  Int
+  variant     Variation? @relation(fields: [variationId], references: [id])
+  variationId Int?
+}
