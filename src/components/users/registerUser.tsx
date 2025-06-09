@@ -71,7 +71,7 @@ function RegisterUser({
         password: password.trim(),
       };
 
-      const res = await axios.post("/api/users", data);
+      const res = await axios.post("/api/usuarios", data);
       reset();
       fetchUsers();
       setLoading(false);

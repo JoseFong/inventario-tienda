@@ -20,6 +20,7 @@
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.511.0",
     "next": "13.5.11",
+    "next-auth": "^4.24.11",
     "pinata": "^2.4.3",
     "react": "^18",
     "react-dom": "^18",

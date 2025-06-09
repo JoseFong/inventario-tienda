@@ -32,7 +32,7 @@ function ConfirmarEliminar({
   async function deleteProduct() {
     try {
       setLoading(true);
-      const res = await axios.delete("/api/products/" + product.id);
+      const res = await axios.delete("/api/productos/" + product.id);
       fetchProducts();
       setLoading(false);
       setOpen(false);

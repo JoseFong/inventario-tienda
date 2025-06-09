@@ -62,3 +62,10 @@ model MovementProduct {
   variant     Variation? @relation(fields: [variationId], references: [id])
   variationId Int?
 }
+
+model Token {
+  id      Int    @id @default(autoincrement())
+  value   String
+  entity  String
+  permits String
+}

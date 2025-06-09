@@ -9,8 +9,10 @@ import UpdateUser from "./updateUser";
 import { Skeleton } from "../ui/skeleton";
 import DeleteUser from "./deleteUser";
 import { useRouter } from "next/navigation";
+import AskForPasswordModal from "../general/askForPassword";
+import GenerateToken from "../token/Token";
 
-function UsersDashboard({ sysUser }: { sysUser: any }) {
+function UsersDashboard({ session }: { session: any }) {
   const [users, setUsers] = useState<User[]>([]);
 
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
@@ -23,10 +25,17 @@ function UsersDashboard({ sysUser }: { sysUser: any }) {
 
   const router = useRouter();
 
+  const [tokenModal, setTokenModal] = useState(false);
+  const [askForPasswordModal, setAskForPasswordModal] = useState(false);
+
+  function toggleTokenModal() {
+    setTokenModal(!tokenModal);
+  }
+
   async function fetchUsers() {
     setLoading(true);
     try {
-      const res = await axios.get("/api/users");
+      const res = await axios.get("/api/usuarios");
       setUsers(res.data);
       setLoading(false);
     } catch (e: any) {
@@ -59,9 +68,15 @@ function UsersDashboard({ sysUser }: { sysUser: any }) {
   return (
     <div className="p-5  flex flex-col gap-2">
       <div className="flex flex-row gap-1 items-center">
-        <h1 className="text-xl font-bold">Bienvenido, {sysUser.username}</h1>
+        <h1 className="font-bold text-xl">Bienvenido, {session.username}</h1>
         <Button variant={"outline"} onClick={logout}>
-          Cerrar Sesión
+          Cerrar sesión
+        </Button>
+        <Button
+          variant={"outline"}
+          onClick={() => setAskForPasswordModal(true)}
+        >
+          Generar Token
         </Button>
       </div>
 
@@ -70,6 +85,12 @@ function UsersDashboard({ sysUser }: { sysUser: any }) {
           open={addUserModalOpen}
           setOpen={setAddUserModalOpen}
           fetchUsers={fetchUsers}
+        />
+        <GenerateToken open={tokenModal} setOpen={setTokenModal} />
+        <AskForPasswordModal
+          open={askForPasswordModal}
+          setOpen={setAskForPasswordModal}
+          openSecond={toggleTokenModal}
         />
         {selectedUser && (
           <>

@@ -64,7 +64,7 @@ function UpdateUser({
         type: type,
       };
 
-      const res = await axios.patch("/api/users/" + user.id, data);
+      const res = await axios.patch("/api/usuarios/" + user.id, data);
       fetchUsers();
       setLoading(false);
       setOpen(false);
@@ -99,7 +99,7 @@ function UpdateUser({
         password: password.trim(),
       };
 
-      const res = await axios.put("/api/users/" + user.id, data);
+      const res = await axios.put("/api/usuarios/" + user.id, data);
       fetchUsers();
       setLoading(false);
       setOpen(false);

@@ -1,22 +1,29 @@
-import UsersDashboard from "@/components/users/usersDashboard";
+import ProductDashboard from "@/components/products/ProductDashboard";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import React from "react";
 import jwt from "jsonwebtoken";
 
-async function Users() {
+function Productos() {
   let decoded: any;
   try {
     const cookieStore = cookies();
     const cookie = cookieStore.get("storeUser");
     if (!cookie) redirect("/login");
+    console.log("hay algo");
     decoded = jwt.verify(cookie.value, process.env.JWT_SECRET!);
-    if (decoded.type !== "superadmin") redirect("/login");
+    console.log(decoded);
+    if (decoded.type !== "superadmin" && decoded.type !== "admin")
+      redirect("/login");
   } catch (e: any) {
     redirect("/login");
   }
 
-  return <UsersDashboard session={decoded} />;
+  return (
+    <div className="p-5">
+      <ProductDashboard />
+    </div>
+  );
 }
 
-export default Users;
+export default Productos;

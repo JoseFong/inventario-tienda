@@ -32,7 +32,7 @@ function DeleteUser({
   async function deleteUser() {
     try {
       setLoading(true);
-      const res = await axios.delete("/api/users/" + user.id);
+      const res = await axios.delete("/api/usuarios/" + user.id);
       fetchUsers();
       setLoading(false);
       setOpen(false);

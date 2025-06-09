@@ -89,7 +89,7 @@ function CreateProductModal({
         pictureUrl: imgLink.trim(),
       };
 
-      const res = await axios.post("/api/products", data);
+      const res = await axios.post("/api/productos", data);
 
       fetchProducts();
 

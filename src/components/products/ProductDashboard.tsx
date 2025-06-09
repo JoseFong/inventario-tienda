@@ -30,8 +30,9 @@ function ProductDashboard() {
 
   async function fetchProducts() {
     try {
+      console.log("vas a hacer la peticion.");
       setLoading(true);
-      const res = await axios.get("/api/products");
+      const res = await axios.get("/api/productos");
       setProducts(res.data);
     } catch (e: any) {
       if (e.response && e.response.data && e.response.data.message) {

@@ -5,11 +5,11 @@ import jwt from "jsonwebtoken"
 
 export async function DELETE(req:Request){
     try{
-        const cookieStore = await cookies()
-                const cookie = cookieStore.get("storeUser")
-                if(!cookie) return NextResponse.json({message:"No esta autorizado para realizar esta acción."},{status:300})
-                const decoded:any = jwt.verify(cookie.value,process.env.JWT_SECRET!)
-                if(decoded.type!=="superadmin" && decoded.type!=="admin") return NextResponse.json({message:"No esta autorizado para realizar esta acción."},{status:300})
+        const cookieStore = cookies()
+        const cookie = cookieStore.get("storeUser")
+        if(!cookie) return NextResponse.json({message:"No está autorizado."},{status:400})
+        const decoded:any = jwt.verify(cookie.value,process.env.JWT_SECRET!)
+        if(decoded.value!=="admin" && decoded.value!=="superadmin") return NextResponse.json({message:"No está autorizado."},{status:400})
 
         const url = new URL(req.url)
         const id:any = url.pathname.split("/").pop()
