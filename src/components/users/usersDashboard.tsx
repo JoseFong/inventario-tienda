@@ -8,11 +8,10 @@ import RegisterUser from "./registerUser";
 import UpdateUser from "./updateUser";
 import { Skeleton } from "../ui/skeleton";
 import DeleteUser from "./deleteUser";
-import { useRouter } from "next/navigation";
 import AskForPasswordModal from "../general/askForPassword";
-import GenerateToken from "../token/Token";
+import GenerateToken from "../token/GenerateToken";
 
-function UsersDashboard({ session }: { session: any }) {
+function UsersDashboard() {
   const [users, setUsers] = useState<User[]>([]);
 
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
@@ -22,8 +21,6 @@ function UsersDashboard({ session }: { session: any }) {
   const [selectedUser, setSelectedUser] = useState<User>();
 
   const [loading, setLoading] = useState(false);
-
-  const router = useRouter();
 
   const [tokenModal, setTokenModal] = useState(false);
   const [askForPasswordModal, setAskForPasswordModal] = useState(false);
@@ -52,34 +49,8 @@ function UsersDashboard({ session }: { session: any }) {
     fetchUsers();
   }, []);
 
-  async function logout() {
-    try {
-      const res = await axios.get("/api/login");
-      router.push("/login");
-    } catch (e: any) {
-      if (e.response && e.response.data && e.response.data.message) {
-        toast.error(e.response.data.message);
-      } else {
-        toast.error(e.message);
-      }
-    }
-  }
-
   return (
     <div className="p-5  flex flex-col gap-2">
-      <div className="flex flex-row gap-1 items-center">
-        <h1 className="font-bold text-xl">Bienvenido, {session.username}</h1>
-        <Button variant={"outline"} onClick={logout}>
-          Cerrar sesión
-        </Button>
-        <Button
-          variant={"outline"}
-          onClick={() => setAskForPasswordModal(true)}
-        >
-          Generar Token
-        </Button>
-      </div>
-
       <div className="absolute z-0">
         <RegisterUser
           open={addUserModalOpen}

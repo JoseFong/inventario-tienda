@@ -28,6 +28,8 @@ model Product {
   pictureUrl      String?
   Variation       Variation[]
   MovementProduct MovementProduct[]
+  provider        Provider          @relation(fields: [providerId], references: [id])
+  providerId      Int
 }
 
 model Variation {
@@ -49,15 +51,17 @@ model Movement {
   changeInMoney   Float
   date            String
   time            String
+  customer        Customer?         @relation(fields: [customerId], references: [id])
   MovementProduct MovementProduct[]
+  customerId      Int?
 }
 
 model MovementProduct {
   id          Int        @id @default(autoincrement())
-  product     Product    @relation(fields: [productId], references: [id])
+  product     Product?   @relation(fields: [productId], references: [id])
   movement    Movement   @relation(fields: [movementId], references: [id])
   quantity    Int
-  productId   Int
+  productId   Int?
   movementId  Int
   variant     Variation? @relation(fields: [variationId], references: [id])
   variationId Int?
@@ -68,4 +72,21 @@ model Token {
   value   String
   entity  String
   permits String
+}
+
+model Provider {
+  id      Int       @id @default(autoincrement())
+  name    String
+  rfc     String
+  Product Product[]
+}
+
+model Customer {
+  id       Int        @id @default(autoincrement())
+  name     String
+  rfc      String
+  email    String?
+  phone    String?
+  address  String?
+  Movement Movement[]
 }

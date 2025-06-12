@@ -14,29 +14,31 @@ import { Button } from "../ui/button";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { isEmpty } from "@/utils/validatons";
-import { Provider } from "@/generated/prisma";
+import { Product, Provider } from "@/generated/prisma";
 
-function CreateProductModal({
+function UpdateProduct({
   open,
   setOpen,
   fetchProducts,
   providers,
+  product,
 }: {
   open: any;
   setOpen: any;
   fetchProducts: () => void;
   providers: Provider[];
+  product: Product;
 }) {
-  const [sku, setSku] = useState("");
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState<any>();
-  const [stock, setStock] = useState<any>();
-  const [hasVariants, setHasVariants] = useState(false);
-  const [providerId, setProviderId] = useState<any>(0);
+  const [sku, setSku] = useState(product.sku);
+  const [name, setName] = useState(product.name);
+  const [price, setPrice] = useState<any>(product.price);
+  const [stock, setStock] = useState<any>(product.stock);
+  const [hasVariants, setHasVariants] = useState(true);
+  const [providerId, setProviderId] = useState<any>(product.providerId);
 
   const [file, setFile] = useState<File>();
   const [imgOption, setImgOption] = useState("link");
-  const [imgLink, setImgLink] = useState("");
+  const [imgLink, setImgLink] = useState(product.pictureUrl + "");
   const [uploadedImage, setUploadedImage] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -72,7 +74,7 @@ function CreateProductModal({
     setFile(e.target?.files?.[0]);
   }
 
-  async function register() {
+  async function updateProduct() {
     try {
       setLoading(true);
 
@@ -97,7 +99,7 @@ function CreateProductModal({
         providerId: parseInt(providerId),
       };
 
-      const res = await axios.post("/api/productos", data);
+      const res = await axios.patch("/api/productos/" + product.id, data);
 
       fetchProducts();
 
@@ -120,12 +122,12 @@ function CreateProductModal({
   }, [imgOption]);
 
   useEffect(() => {
-    setSku("");
-    setName("");
-    setPrice(0);
-    setStock(0);
-    setHasVariants(false);
-    setImgLink("");
+    setSku(product.sku);
+    setName(product.name);
+    setPrice(product.price);
+    setStock(product.stock);
+    setHasVariants(true);
+    setImgLink(product.pictureUrl + "");
     setImgOption("file");
     setUploadedImage(false);
   }, [open, setOpen]);
@@ -137,7 +139,7 @@ function CreateProductModal({
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Registrar Producto</AlertDialogTitle>
+          <AlertDialogTitle>Editar Producto</AlertDialogTitle>
           <AlertDialogDescription className="text-black flex flex-col gap-1 max-h-[300px] overflow-y-scroll items-start">
             <label>SKU</label>
             <input
@@ -244,9 +246,9 @@ function CreateProductModal({
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
           {loading ? (
-            <Button disabled>Cargando...</Button>
+            <Button disabled>Editando...</Button>
           ) : (
-            <Button onClick={register}>Registrar</Button>
+            <Button onClick={updateProduct}>Editar</Button>
           )}
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -254,4 +256,4 @@ function CreateProductModal({
   );
 }
 
-export default CreateProductModal;
+export default UpdateProduct;

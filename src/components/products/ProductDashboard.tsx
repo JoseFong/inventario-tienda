@@ -1,5 +1,5 @@
 "use client";
-import { Product } from "@/generated/prisma";
+import { Product, Provider } from "@/generated/prisma";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -9,6 +9,7 @@ import Image from "next/image";
 import CreateProductModal from "./CreateProductModal";
 import ConfirmarEliminar from "./ConfirmarEliminar";
 import { Skeleton } from "../ui/skeleton";
+import UpdateProduct from "./UpdateProduct";
 
 function ProductDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -21,7 +22,11 @@ function ProductDashboard() {
 
   const [openDeleteProductModal, setOpenDeleteProductModal] = useState(false);
 
+  const [providers, setProviders] = useState<Provider[]>([]);
+
   const [selectedProduct, setSelectedProduct] = useState<Product>();
+
+  const [openUpdateProd, setOpenUpdateProd] = useState(false);
 
   function openDeleteModal(product: Product) {
     setSelectedProduct(product);
@@ -43,8 +48,23 @@ function ProductDashboard() {
     }
   }
 
+  async function fetchGetProviders() {
+    try {
+      const res = await axios.get("/api/providers");
+      setProviders(res.data);
+    } catch (e: any) {
+      setLoading(false);
+      if (e.response && e.response.data && e.response.data.message) {
+        toast.error(e.response.data.message);
+      } else {
+        toast.error(e.message);
+      }
+    }
+  }
+
   useEffect(() => {
     fetchProducts();
+    fetchGetProviders();
   }, []);
 
   useEffect(() => {
@@ -66,21 +86,37 @@ function ProductDashboard() {
     }
   }, [searchValue]);
 
+  function getProviderName(id: number) {
+    const provider = providers.find((p: Provider) => p.id === id);
+    if (provider) return provider.name;
+    return "Desconocido.";
+  }
+
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 w-full p-5">
       <div className="z-0 absolute">
         <CreateProductModal
           open={openCreateProductModal}
           setOpen={setOpenCreateProductModal}
           fetchProducts={fetchProducts}
+          providers={providers}
         />
         {selectedProduct && (
-          <ConfirmarEliminar
-            open={openDeleteProductModal}
-            setOpen={setOpenDeleteProductModal}
-            fetchProducts={fetchProducts}
-            product={selectedProduct}
-          />
+          <>
+            <ConfirmarEliminar
+              open={openDeleteProductModal}
+              setOpen={setOpenDeleteProductModal}
+              fetchProducts={fetchProducts}
+              product={selectedProduct}
+            />
+            <UpdateProduct
+              open={openUpdateProd}
+              setOpen={setOpenUpdateProd}
+              fetchProducts={fetchProducts}
+              providers={providers}
+              product={selectedProduct}
+            />
+          </>
         )}
       </div>
       <div className="flex flex-row gap-2 items-center">
@@ -123,6 +159,8 @@ function ProductDashboard() {
                 <th className="p-1 text-start">SKU</th>
                 <th className="p-1 text-start">Nombre</th>
                 <th className="p-1 text-start">Stock</th>
+                <th className="p-1 text-start">Precio Unitario</th>
+                <th className="p-1 text-start">Proveedor</th>
                 <th className="p-1 text-start">Acciones</th>
               </tr>
             </thead>
@@ -137,7 +175,21 @@ function ProductDashboard() {
                   <td className="p-1 justify-center">{p.sku}</td>
                   <td className="p-1 justify-center">{p.name}</td>
                   <td className="p-1 justify-center">{p.stock}</td>
+                  <td className="p-1 justify-center">${p.price}</td>
                   <td className="p-1 justify-center">
+                    {getProviderName(p.providerId)}
+                  </td>
+                  <td className="p-1 justify-center">
+                    <Button
+                      variant="outline"
+                      className="mr-1"
+                      onClick={() => {
+                        setSelectedProduct(p);
+                        setOpenUpdateProd(true);
+                      }}
+                    >
+                      Editar
+                    </Button>
                     <Button
                       variant={"destructive"}
                       onClick={() => openDeleteModal(p)}

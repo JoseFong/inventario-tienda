@@ -23,11 +23,13 @@ export async function GET(req:Request){
 
 export async function POST(req:Request){
     try{
+        console.log("aaa")
         const cookieStore = cookies()
         const cookie = cookieStore.get("storeUser")
         if(!cookie) return NextResponse.json({message:"No está autorizado."},{status:400})
         const decoded:any = jwt.verify(cookie.value,process.env.JWT_SECRET!)
-        if(decoded.value!=="admin" && decoded.value!=="superadmin") return NextResponse.json({message:"No está autorizado."},{status:400})
+    console.log(decoded)
+        if(decoded.type!=="admin" && decoded.type!=="superadmin") return NextResponse.json({message:"No está autorizado."},{status:400})
         const data = await req.json()
         
         let product = await prisma.product.findFirst({

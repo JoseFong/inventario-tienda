@@ -1,7 +1,7 @@
-import { deleteProduct, updateProduct } from "@/controllers/productController"
 import { cookies } from "next/headers"
-import { NextResponse } from "next/server"
 import jwt from "jsonwebtoken"
+import { NextResponse } from "next/server"
+import { deleteProvider, updateProvider } from "@/controllers/providerController"
 import prisma from "@/libs/prisma"
 
 export async function DELETE(req:Request){
@@ -10,17 +10,18 @@ export async function DELETE(req:Request){
         const cookie = cookieStore.get("storeUser")
         if(!cookie) return NextResponse.json({message:"No está autorizado."},{status:400})
         const decoded:any = jwt.verify(cookie.value,process.env.JWT_SECRET!)
-        if(decoded.value!=="admin" && decoded.value!=="superadmin") return NextResponse.json({message:"No está autorizado."},{status:400})
+        if(decoded.type!=="superadmin" && decoded.type!=="admin") return NextResponse.json({message:"No está autorizado."},{status:400})
 
         const url = new URL(req.url)
         const id:any = url.pathname.split("/").pop()
         const idNum:number = parseInt(id)
 
-        await deleteProduct(idNum)
-            return NextResponse.json({status:200})
-        }catch(e:any){
-            return NextResponse.json({message:"Error 500: "+e.message},{status:500})
-        }
+        await deleteProvider(idNum)
+
+        return NextResponse.json({status:200})
+    }catch(e:any){
+        return NextResponse.json({message:"Error 500: "+e.message},{status:500})
+    }
 }
 
 export async function PATCH(req:Request){
@@ -29,29 +30,29 @@ export async function PATCH(req:Request){
         const cookie = cookieStore.get("storeUser")
         if(!cookie) return NextResponse.json({message:"No está autorizado."},{status:400})
         const decoded:any = jwt.verify(cookie.value,process.env.JWT_SECRET!)
-        if(decoded.type!=="admin" && decoded.type!=="superadmin") return NextResponse.json({message:"No está autorizado."},{status:400})
-        
-        const data = await req.json()
-        
-        const url = new URL(req.url)
+        if(decoded.type!=="superadmin" && decoded.type!=="admin") return NextResponse.json({message:"No está autorizado."},{status:400})
+
+            const data = await req.json()
+
+         const url = new URL(req.url)
         const id:any = url.pathname.split("/").pop()
         const idNum:number = parseInt(id)
 
-        let product = await prisma.product.findFirst({
+        let provider = await prisma.provider.findFirst({
             where:{
                 name: data.name
             }
         })
-        if(product && product.id!==idNum) return NextResponse.json({message:"Ya existe un producto con ese nombre."},{status:400})
-        
-            product = await prisma.product.findFirst({
+        if(provider && provider.id!==idNum) return NextResponse.json({message:"Ya existe un proveedor con este nombre."},{status:400})
+
+        provider = await prisma.provider.findFirst({
             where:{
-                sku: data.sku
+                rfc:data.rfc
             }
         })
-        if(product && product.id!==idNum) return NextResponse.json({message:"Ya existe un producto con ese SKU."},{status:400})
-        
-            await updateProduct(idNum,data)
+        if(provider && provider.id!==idNum) return NextResponse.json({message:"Ya existe un proveedor con este RFC."},{status:400})
+
+        await updateProvider(idNum,data)
 
         return NextResponse.json({status:200})
     }catch(e:any){

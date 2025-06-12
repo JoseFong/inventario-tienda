@@ -1,20 +1,18 @@
-import ProductDashboard from "@/components/products/ProductDashboard";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import React from "react";
+import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
+import { redirect } from "next/navigation";
 import LateralMenu from "@/components/general/LateralMenu";
+import ProveedoresOverview from "@/components/proveedores/ProveedoresOverview";
 
-function Productos() {
+function Proveedores() {
   let decoded: any;
   try {
     const cookieStore = cookies();
     const cookie = cookieStore.get("storeUser");
     if (!cookie) redirect("/login");
-    console.log("hay algo");
     decoded = jwt.verify(cookie.value, process.env.JWT_SECRET!);
-    console.log(decoded);
-    if (decoded.type !== "superadmin" && decoded.type !== "admin")
+    if (decoded.type !== "admin" && decoded.type !== "superadmin")
       redirect("/login");
   } catch (e: any) {
     redirect("/login");
@@ -23,9 +21,9 @@ function Productos() {
   return (
     <div className="flex flex-row">
       <LateralMenu session={decoded} />
-      <ProductDashboard />
+      <ProveedoresOverview />
     </div>
   );
 }
 
-export default Productos;
+export default Proveedores;

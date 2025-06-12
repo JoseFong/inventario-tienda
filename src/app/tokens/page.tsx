@@ -1,21 +1,18 @@
-import ProductDashboard from "@/components/products/ProductDashboard";
+import React, { useEffect } from "react";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import React from "react";
 import jwt from "jsonwebtoken";
+import { redirect } from "next/navigation";
 import LateralMenu from "@/components/general/LateralMenu";
+import TokenOverview from "@/components/token/TokenOverview";
 
-function Productos() {
+function Tokens() {
   let decoded: any;
   try {
     const cookieStore = cookies();
     const cookie = cookieStore.get("storeUser");
     if (!cookie) redirect("/login");
-    console.log("hay algo");
     decoded = jwt.verify(cookie.value, process.env.JWT_SECRET!);
-    console.log(decoded);
-    if (decoded.type !== "superadmin" && decoded.type !== "admin")
-      redirect("/login");
+    if (decoded.type !== "superadmin") redirect("/login");
   } catch (e: any) {
     redirect("/login");
   }
@@ -23,9 +20,9 @@ function Productos() {
   return (
     <div className="flex flex-row">
       <LateralMenu session={decoded} />
-      <ProductDashboard />
+      <TokenOverview />
     </div>
   );
 }
 
-export default Productos;
+export default Tokens;

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import React from "react";
 import jwt from "jsonwebtoken";
+import LateralMenu from "@/components/general/LateralMenu";
 
 async function Users() {
   let decoded: any;
@@ -16,7 +17,12 @@ async function Users() {
     redirect("/login");
   }
 
-  return <UsersDashboard session={decoded} />;
+  return (
+    <div className="flex flex-row">
+      <LateralMenu session={decoded} />
+      <UsersDashboard />
+    </div>
+  );
 }
 
 export default Users;

@@ -28,7 +28,7 @@ function Login() {
       };
 
       const res = await axios.post("/api/login", data);
-      router.push("/users");
+      router.push("/ventas");
       setLoading(false);
     } catch (e: any) {
       setLoading(false);
