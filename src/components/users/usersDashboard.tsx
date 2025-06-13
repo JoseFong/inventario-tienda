@@ -9,7 +9,6 @@ import UpdateUser from "./updateUser";
 import { Skeleton } from "../ui/skeleton";
 import DeleteUser from "./deleteUser";
 import AskForPasswordModal from "../general/askForPassword";
-import GenerateToken from "../token/GenerateToken";
 
 function UsersDashboard() {
   const [users, setUsers] = useState<User[]>([]);
@@ -57,7 +56,6 @@ function UsersDashboard() {
           setOpen={setAddUserModalOpen}
           fetchUsers={fetchUsers}
         />
-        <GenerateToken open={tokenModal} setOpen={setTokenModal} />
         <AskForPasswordModal
           open={askForPasswordModal}
           setOpen={setAskForPasswordModal}
