@@ -77,6 +77,7 @@ function Login() {
           />
         </div>
       </div>
+
       {loading ? (
         <Button disabled className="mt-2">
           Cargando...
@@ -86,6 +87,10 @@ function Login() {
           Iniciar sesión
         </Button>
       )}
+      <p className="mt-3 text-sm">
+        Para probar la App use Usuario: <span className="font-bold">Admin</span>
+        , Contraseña: <span className="font-bold">Admin1234</span>
+      </p>
     </div>
   );
 }

@@ -33,7 +33,7 @@ function LateralMenu({ session }: { session: any }) {
   }
 
   return (
-    <div className="bg-blue-600 h-screen p-1 items-center min-w-12">
+    <div className="bg-blue-600 h-screen p-1 items-center min-w-12 z-30">
       <button
         onClick={() => setShowing(!showing)}
         className="hover:bg-blue-700 p-2 rounded-md hover:shadow-md active:bg-blue-800"

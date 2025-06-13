@@ -23,7 +23,7 @@ function Productos() {
   return (
     <div className="flex flex-row">
       <LateralMenu session={decoded} />
-      <ProductDashboard />
+      <ProductDashboard endpoint={"/api/productos"} specific={false} />
     </div>
   );
 }

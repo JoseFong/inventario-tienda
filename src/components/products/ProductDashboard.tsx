@@ -10,8 +10,16 @@ import CreateProductModal from "./CreateProductModal";
 import ConfirmarEliminar from "./ConfirmarEliminar";
 import { Skeleton } from "../ui/skeleton";
 import UpdateProduct from "./UpdateProduct";
+import Edit from "@/assets/icons8-edit-100.png";
+import EditStock from "./EditStock";
 
-function ProductDashboard() {
+function ProductDashboard({
+  endpoint,
+  specific,
+}: {
+  endpoint: string;
+  specific: boolean;
+}) {
   const [products, setProducts] = useState<Product[]>([]);
   const [results, setResults] = useState<Product[]>([]);
   const [searchValue, setSearchValue] = useState("");
@@ -28,6 +36,8 @@ function ProductDashboard() {
 
   const [openUpdateProd, setOpenUpdateProd] = useState(false);
 
+  const [openEditStock, setOpenEditStock] = useState(false);
+
   function openDeleteModal(product: Product) {
     setSelectedProduct(product);
     setOpenDeleteProductModal(true);
@@ -37,7 +47,7 @@ function ProductDashboard() {
     try {
       console.log("vas a hacer la peticion.");
       setLoading(true);
-      const res = await axios.get("/api/productos");
+      const res = await axios.get(endpoint);
       setProducts(res.data);
     } catch (e: any) {
       if (e.response && e.response.data && e.response.data.message) {
@@ -116,19 +126,29 @@ function ProductDashboard() {
               providers={providers}
               product={selectedProduct}
             />
+            <EditStock
+              open={openEditStock}
+              setOpen={setOpenEditStock}
+              fetchProducts={fetchProducts}
+              product={selectedProduct}
+            />
           </>
         )}
       </div>
       <div className="flex flex-row gap-2 items-center">
-        <h1 className="font-bold text-xl">Todos los productos</h1>
-        <Button
-          disabled={loading}
-          onClick={() => setOpenCreateProductModal(true)}
-          className="w-auto self-start px-3 py-5 bg-green-600 text-white hover:bg-green-700 active:bg-green-800"
-        >
-          <Image src={addIcon} alt={"Agregar Producto"} className="w-8" />
-          Agregar
-        </Button>
+        <h1 className="font-bold text-xl">
+          {specific ? "Productos" : "Todos los productos"}
+        </h1>
+        {!specific && (
+          <Button
+            disabled={loading}
+            onClick={() => setOpenCreateProductModal(true)}
+            className="w-auto self-start px-3 py-5 bg-green-600 text-white hover:bg-green-700 active:bg-green-800"
+          >
+            <Image src={addIcon} alt={"Agregar Producto"} className="w-8" />
+            Agregar
+          </Button>
+        )}
       </div>
       {loading ? (
         <>
@@ -174,7 +194,20 @@ function ProductDashboard() {
                   </td>
                   <td className="p-1 justify-center">{p.sku}</td>
                   <td className="p-1 justify-center">{p.name}</td>
-                  <td className="p-1 justify-center">{p.stock}</td>
+                  <td className="p-1 justify-center">
+                    <div className="flex flex-row gap-2 items-center">
+                      {p.stock}{" "}
+                      <Button
+                        onClick={() => {
+                          setSelectedProduct(p);
+                          setOpenEditStock(true);
+                        }}
+                        className="p-1 w-10"
+                      >
+                        <Image src={Edit} alt="Editar" />
+                      </Button>
+                    </div>
+                  </td>
                   <td className="p-1 justify-center">${p.price}</td>
                   <td className="p-1 justify-center">
                     {getProviderName(p.providerId)}

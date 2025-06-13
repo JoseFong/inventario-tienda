@@ -1,4 +1,4 @@
-import { createProduct, getAllProducts } from "@/controllers/productController";
+import { createProduct, getAllProducts, getProductsFromProvider } from "@/controllers/productController";
 import prisma from "@/libs/prisma";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
@@ -6,13 +6,19 @@ import jwt from "jsonwebtoken"
 
 export async function GET(req:Request){
     try{
-        console.log("GET")
         const cookieStore = cookies()
-                const cookie = cookieStore.get("storeUser")
-                if(!cookie) return NextResponse.json({message:"No está autorizado."},{status:400})
-                const decoded:any = jwt.verify(cookie.value,process.env.JWT_SECRET!)
-            console.log(decoded)
-                if(decoded.type!=="admin" && decoded.type!=="superadmin") return NextResponse.json({message:"No está autorizado."},{status:400})
+        const cookie = cookieStore.get("storeUser")
+        if(!cookie) return NextResponse.json({message:"No está autorizado."},{status:400})
+        const decoded:any = jwt.verify(cookie.value,process.env.JWT_SECRET!)
+        if(decoded.type!=="admin" && decoded.type!=="superadmin") return NextResponse.json({message:"No está autorizado."},{status:400})
+
+        const {searchParams} = new URL(req.url)
+        const providerId = searchParams.get("providerId")
+
+        if(providerId){
+            const products = await getProductsFromProvider(parseInt(providerId))
+            return NextResponse.json(products)
+        }
 
         const products = await getAllProducts()
         return NextResponse.json(products)

@@ -10,7 +10,7 @@ import { Skeleton } from "../ui/skeleton";
 import DeleteUser from "./deleteUser";
 import AskForPasswordModal from "../general/askForPassword";
 
-function UsersDashboard() {
+function UsersDashboard({ session }: { session: any }) {
   const [users, setUsers] = useState<User[]>([]);
 
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
@@ -24,6 +24,9 @@ function UsersDashboard() {
   const [tokenModal, setTokenModal] = useState(false);
   const [askForPasswordModal, setAskForPasswordModal] = useState(false);
 
+  const [searchValue, setSearchValue] = useState("");
+  const [result, setResults] = useState<User[]>([]);
+
   function toggleTokenModal() {
     setTokenModal(!tokenModal);
   }
@@ -33,6 +36,7 @@ function UsersDashboard() {
     try {
       const res = await axios.get("/api/usuarios");
       setUsers(res.data);
+      setResults(res.data);
       setLoading(false);
     } catch (e: any) {
       setLoading(false);
@@ -48,8 +52,19 @@ function UsersDashboard() {
     fetchUsers();
   }, []);
 
+  useEffect(() => {
+    if (searchValue.trim() === "") {
+      setResults(users);
+    } else {
+      const aux: User[] = users.filter((u: User) =>
+        u.username.toLowerCase().includes(searchValue.trim().toLowerCase())
+      );
+      setResults(aux);
+    }
+  }, [searchValue]);
+
   return (
-    <div className="p-5  flex flex-col gap-2">
+    <div className="p-5  flex flex-col gap-2 w-full">
       <div className="absolute z-0">
         <RegisterUser
           open={addUserModalOpen}
@@ -88,6 +103,15 @@ function UsersDashboard() {
           Registrar Usuario
         </Button>
       </div>
+      <div className="flex flex-row gap-2 items-center">
+        <label>Buscar</label>
+        <input
+          className="bg-zinc-100 p-1 rounded-md"
+          placeholder="Buscar usuario"
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+        />
+      </div>
       {loading ? (
         <>
           <Skeleton className="w-full h-9" />
@@ -110,7 +134,7 @@ function UsersDashboard() {
               </tr>
             </thead>
             <tbody>
-              {users.map((u: User) => (
+              {result.map((u: User) => (
                 <tr>
                   <td className="p-1 border-2 border-black">{u.username}</td>
                   <td className="p-1 border-2 border-black">{u.type}</td>
@@ -123,21 +147,28 @@ function UsersDashboard() {
                     >
                       Editar
                     </Button>
-                    <Button
-                      className="ml-1"
-                      variant={"destructive"}
-                      onClick={() => {
-                        setSelectedUser(u);
-                        setDeleteUserModalOpen(true);
-                      }}
-                    >
-                      Eliminar
-                    </Button>
+                    {u.id !== session.id && (
+                      <Button
+                        className="ml-1"
+                        variant={"destructive"}
+                        onClick={() => {
+                          setSelectedUser(u);
+                          setDeleteUserModalOpen(true);
+                        }}
+                      >
+                        Eliminar
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {result.length === 0 && (
+            <div className="w-full text-center">
+              No se encontraron usuarios.
+            </div>
+          )}
         </>
       )}
     </div>

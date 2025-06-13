@@ -10,6 +10,7 @@ import Image from "next/image";
 import Add from "@/assets/addIcon.png";
 import DeleteProvider from "./DeleteProvider";
 import UpdateProvider from "./UpdateProvider";
+import { useRouter } from "next/navigation";
 
 function ProveedoresOverview() {
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -23,6 +24,8 @@ function ProveedoresOverview() {
   const [openDeleteProv, setOpenDeleteProv] = useState(false);
   const [selectedProv, setSelectedProv] = useState<Provider>();
   const [openUpdateProv, setOpenUpdateProv] = useState(false);
+
+  const router = useRouter();
 
   async function fetchGetProviders() {
     try {
@@ -132,7 +135,17 @@ function ProveedoresOverview() {
                 <tr key={p.id}>
                   <td className="p-1 border-2">{p.name}</td>
                   <td className="p-1 border-2">{p.rfc}</td>
-                  <td className="p-1 border-2">Accion</td>
+                  <td className="p-1 border-2">
+                    <Button
+                      variant={"link"}
+                      onClick={() => {
+                        const link = "/proveedores/" + p.id + "/productos";
+                        router.push(link);
+                      }}
+                    >
+                      Ver más
+                    </Button>
+                  </td>
                   <td className="p-1 border-2">
                     <Button
                       variant={"outline"}

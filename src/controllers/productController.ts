@@ -48,3 +48,11 @@ export async function updateProduct(id:number,data:any){
         }
     })
 }
+
+export async function getProductsFromProvider(id:number){
+    return await prisma.product.findMany({
+        where:{
+            providerId: id
+        }
+    })
+}
