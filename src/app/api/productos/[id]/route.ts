@@ -8,9 +8,11 @@ export async function DELETE(req:Request){
     try{
         const cookieStore = cookies()
         const cookie = cookieStore.get("storeUser")
+        console.log(cookie)
         if(!cookie) return NextResponse.json({message:"No está autorizado."},{status:400})
         const decoded:any = jwt.verify(cookie.value,process.env.JWT_SECRET!)
-        if(decoded.value!=="admin" && decoded.value!=="superadmin") return NextResponse.json({message:"No está autorizado."},{status:400})
+    console.log("DELETE PRODUCTO\n"+JSON.stringify(decoded))
+        if(decoded.type!=="admin" && decoded.type!=="superadmin") return NextResponse.json({message:"No está autorizado."},{status:400})
 
         const url = new URL(req.url)
         const id:any = url.pathname.split("/").pop()

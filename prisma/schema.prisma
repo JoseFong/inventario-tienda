@@ -19,28 +19,23 @@ model User {
 }
 
 model Product {
-  id              Int               @id @default(autoincrement())
-  sku             String            @unique
-  name            String
-  price           Float?
-  hasVariants     Boolean
-  stock           Int?
-  pictureUrl      String?
-  Variation       Variation[]
-  MovementProduct MovementProduct[]
-  provider        Provider          @relation(fields: [providerId], references: [id])
-  providerId      Int
+  id          Int         @id @default(autoincrement())
+  name        String
+  Variation   Variation[]
+  provider    Provider    @relation(fields: [providerId], references: [id])
+  providerId  Int
+  hasVariants Boolean
 }
 
 model Variation {
   id              Int               @id @default(autoincrement())
+  product         Product           @relation(fields: [productId], references: [id])
+  productId       Int
   sku             String            @unique
   name            String
   price           Float
   stock           Int
   pictureUrl      String?
-  product         Product           @relation(fields: [productId], references: [id])
-  productId       Int
   MovementProduct MovementProduct[]
 }
 
@@ -52,19 +47,20 @@ model Movement {
   date            String
   time            String
   customer        Customer?         @relation(fields: [customerId], references: [id])
+  provider        Provider?         @relation(fields: [providerId], references: [id])
   MovementProduct MovementProduct[]
   customerId      Int?
+  providerId      Int?
 }
 
 model MovementProduct {
-  id          Int        @id @default(autoincrement())
-  product     Product?   @relation(fields: [productId], references: [id])
-  movement    Movement   @relation(fields: [movementId], references: [id])
-  quantity    Int
-  productId   Int?
-  movementId  Int
-  variant     Variation? @relation(fields: [variationId], references: [id])
-  variationId Int?
+  id            Int        @id @default(autoincrement())
+  movement      Movement   @relation(fields: [movementId], references: [id])
+  movementId    Int
+  variant       Variation? @relation(fields: [variationId], references: [id])
+  variationId   Int?
+  quantity      Int
+  changeInMoney Float
 }
 
 model Token {
@@ -75,10 +71,11 @@ model Token {
 }
 
 model Provider {
-  id      Int       @id @default(autoincrement())
-  name    String
-  rfc     String
-  Product Product[]
+  id       Int        @id @default(autoincrement())
+  name     String
+  rfc      String
+  Product  Product[]
+  Movement Movement[]
 }
 
 model Customer {

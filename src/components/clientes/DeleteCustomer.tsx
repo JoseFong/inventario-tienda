@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,28 +13,28 @@ import {
 import { Button } from "../ui/button";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Product } from "@/generated/prisma";
+import { isEmpty, validMail } from "@/utils/validatons";
+import { Customer, Provider } from "@/generated/prisma";
 
-function ConfirmarEliminar({
+function DeleteCustomer({
   open,
   setOpen,
-  fetchProducts,
-  product,
+  fetchCustomers,
+  customer,
 }: {
   open: any;
   setOpen: any;
-  fetchProducts: () => void;
-  product: Product;
+  fetchCustomers: () => void;
+  customer: Customer;
 }) {
-  //useStates para manejar aspectos visuales
   const [loading, setLoading] = useState(false);
 
-  //función que se ejecuta al presionar eliminar
-  async function deleteProduct() {
+  //función que se ejecuta al presionar registrar
+  async function deleteCustomer() {
     try {
       setLoading(true);
-      const res = await axios.delete("/api/productos/" + product.id);
-      fetchProducts();
+      const res = await axios.delete("/api/customers/" + customer.id);
+      fetchCustomers();
       setLoading(false);
       setOpen(false);
     } catch (e: any) {
@@ -55,7 +55,7 @@ function ConfirmarEliminar({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            ¿Está seguro que quiere eliminar el producto {product.name}?
+            ¿Está seguro que quiere eliminar al cliente {customer.name}?
           </AlertDialogTitle>
           <AlertDialogDescription className="text-red-500">
             ¡Esta acción es permanente!
@@ -63,19 +63,17 @@ function ConfirmarEliminar({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          {loading ? (
-            <Button disabled variant={"destructive"}>
-              Eliminando...
-            </Button>
-          ) : (
-            <Button onClick={deleteProduct} variant={"destructive"}>
-              Eliminar
-            </Button>
-          )}
+          <Button
+            onClick={deleteCustomer}
+            variant={"destructive"}
+            disabled={loading}
+          >
+            {loading ? "Eliminando..." : "Eliminar"}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
 }
 
-export default ConfirmarEliminar;
+export default DeleteCustomer;

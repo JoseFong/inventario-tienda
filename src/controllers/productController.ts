@@ -1,21 +1,20 @@
 import prisma from "@/libs/prisma";
+import { createVariation } from "./variationController";
 
 export async function getAllProducts(){
     return await prisma.product.findMany()
 }
 
 export async function createProduct(data:any){
-    return await prisma.product.create({
+    const product = await prisma.product.create({
         data:{
-            sku:data.sku,
             name:data.name,
-            price:data.price,
-            hasVariants:data.hasVariants,
-            stock:data.stock,
-            pictureUrl:data.pictureUrl,
-            providerId: data.providerId
+            providerId: data.providerId,
+            hasVariants: data.hasVariants
         }
     })
+
+    await createVariation(product.id,data)
 }
 
 export async function deleteProduct(id:number){
@@ -38,12 +37,8 @@ export async function updateProduct(id:number,data:any){
             id: id
         },
         data:{
-            sku:data.sku,
             name:data.name,
-            price:data.price,
             hasVariants:data.hasVariants,
-            stock:data.stock,
-            pictureUrl:data.pictureUrl,
             providerId: data.providerId
         }
     })

@@ -14,11 +14,16 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Token from "@/assets/icons8-tokens-64.png";
+import Clientes from "@/assets/icons8-client-96.png";
 
 function LateralMenu({ session }: { session: any }) {
+  //useStates para aspectos visuales
   const [showing, setShowing] = useState(false);
+
+  //variables
   const router = useRouter();
 
+  //funcion que se ejecuta al presionar el boton de cerrar sessión
   async function logOut() {
     try {
       const res = await axios.get("/api/login");
@@ -67,13 +72,15 @@ function LateralMenu({ session }: { session: any }) {
               <Image src={Logout} alt="Cerrar Sesión" />
             </button>
           </div>
-          <a
-            href="/ventas"
-            className="hover:bg-blue-700 hover:shadow-md active:bg-blue-800 rounded-md p-1 items-center flex flex-row gap-1"
-          >
-            <Image src={Sales} alt="Ventas" className="w-8" />
-            <h1 className="text-lg font-bold">Venta</h1>
-          </a>
+          {(session.type === "superadmin" || session.type === "admin") && (
+            <a
+              href="/clientes"
+              className="hover:bg-blue-700 hover:shadow-md active:bg-blue-800 rounded-md p-1 items-center flex flex-row gap-1"
+            >
+              <Image src={Clientes} alt="Clientes" className="w-8" />
+              <h1 className="text-lg font-bold">Clientes</h1>
+            </a>
+          )}
           {(session.type === "superadmin" || session.type === "admin") && (
             <a
               href="/proveedores"

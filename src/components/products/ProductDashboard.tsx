@@ -1,55 +1,45 @@
 "use client";
-import { Product, Provider } from "@/generated/prisma";
+import { Product, Provider, Variation } from "@/generated/prisma";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
-import addIcon from "@/assets/addIcon.png";
-import Image from "next/image";
-import CreateProductModal from "./CreateProductModal";
 import ConfirmarEliminar from "./ConfirmarEliminar";
 import { Skeleton } from "../ui/skeleton";
-import UpdateProduct from "./UpdateProduct";
-import Edit from "@/assets/icons8-edit-100.png";
-import EditStock from "./EditStock";
+import CreateProduct from "./CreateProduct";
+import Image from "next/image";
+import DeleteVariant from "./DeleteVariant";
+import CreateVariant from "./CreateVariant";
 
-function ProductDashboard({
-  endpoint,
-  specific,
-}: {
-  endpoint: string;
-  specific: boolean;
-}) {
+function ProductDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [results, setResults] = useState<Product[]>([]);
-  const [searchValue, setSearchValue] = useState("");
-
-  const [loading, setLoading] = useState(true);
-
-  const [openCreateProductModal, setOpenCreateProductModal] = useState(false);
-
-  const [openDeleteProductModal, setOpenDeleteProductModal] = useState(false);
-
   const [providers, setProviders] = useState<Provider[]>([]);
+  const [expandedRows, setExpandedRows] = useState<number[]>([]);
+  const [variants, setVariants] = useState<Variation[]>([]);
+  const [search, setSearch] = useState("");
+  const [varResults, setVarResults] = useState<Variation[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [selectedProduct, setSelectedProduct] = useState<Product>();
 
-  const [openUpdateProd, setOpenUpdateProd] = useState(false);
+  const [openDelProd, setOpenDelProd] = useState(false);
+  const [openCreateProd, setOpenCreateProd] = useState(false);
 
-  const [openEditStock, setOpenEditStock] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState<Variation>();
+  const [openDelVar, setOpenDelVar] = useState(false);
 
-  function openDeleteModal(product: Product) {
-    setSelectedProduct(product);
-    setOpenDeleteProductModal(true);
-  }
+  const [openCreateVar, setOpenCreateVar] = useState(false);
 
   async function fetchProducts() {
     try {
-      console.log("vas a hacer la peticion.");
       setLoading(true);
-      const res = await axios.get(endpoint);
+      const res = await axios.get("/api/productos");
       setProducts(res.data);
+      setResults(res.data);
+      setLoading(false);
     } catch (e: any) {
+      setLoading(false);
       if (e.response && e.response.data && e.response.data.message) {
         toast.error(e.response.data.message);
       } else {
@@ -58,10 +48,28 @@ function ProductDashboard({
     }
   }
 
-  async function fetchGetProviders() {
+  async function fetchVariations() {
     try {
+      setLoading(true);
+      const res = await axios.get("/api/variants");
+      setVariants(res.data);
+      setLoading(false);
+    } catch (e: any) {
+      setLoading(false);
+      if (e.response && e.response.data && e.response.data.message) {
+        toast.error(e.response.data.message);
+      } else {
+        toast.error(e.message);
+      }
+    }
+  }
+
+  async function fetchProviders() {
+    try {
+      setLoading(true);
       const res = await axios.get("/api/providers");
       setProviders(res.data);
+      setLoading(false);
     } catch (e: any) {
       setLoading(false);
       if (e.response && e.response.data && e.response.data.message) {
@@ -74,170 +82,288 @@ function ProductDashboard({
 
   useEffect(() => {
     fetchProducts();
-    fetchGetProviders();
+    fetchVariations();
+    fetchProviders();
   }, []);
 
-  useEffect(() => {
-    setResults(products);
-    setLoading(false);
-  }, [products]);
+  function getProviderName(id: number) {
+    const provider = providers.find(
+      (p: Provider) => parseInt(p.id + "") === parseInt(id + "")
+    );
+    if (provider) return provider.name;
+    return "Desconocido";
+  }
+
+  function showRow(id: number) {
+    if (expandedRows.includes(id)) {
+      const aux = expandedRows.filter((x: number) => x !== id);
+      setExpandedRows(aux);
+    } else {
+      const aux = [...expandedRows];
+      aux.push(id);
+      setExpandedRows(aux);
+    }
+  }
 
   useEffect(() => {
-    if (searchValue === "") {
+    if (search.trim() === "") {
       setResults(products);
+      setVarResults(variants);
     } else {
-      const aux: Product[] = products.filter((p: Product) => {
+      const aux1 = products.filter((p: Product) =>
+        p.name.toLowerCase().includes(search.trim().toLowerCase())
+      );
+      setResults(aux1);
+
+      const aux2 = variants.filter((v: Variation) => {
         return (
-          p.name.toLowerCase().includes(searchValue.trim().toLowerCase()) ||
-          p.sku.toString().includes(searchValue.trim())
+          v.sku.toLowerCase().includes(search.trim().toLowerCase()) ||
+          v.name.toLowerCase().includes(search.trim().toLowerCase())
         );
       });
-      setResults(aux);
+      setVarResults(aux2);
     }
-  }, [searchValue]);
+  }, [search]);
 
-  function getProviderName(id: number) {
-    const provider = providers.find((p: Provider) => p.id === id);
-    if (provider) return provider.name;
-    return "Desconocido.";
+  function reset() {
+    fetchProducts();
+    fetchVariations();
   }
 
   return (
-    <div className="flex flex-col gap-1 w-full p-5">
-      <div className="z-0 absolute">
-        <CreateProductModal
-          open={openCreateProductModal}
-          setOpen={setOpenCreateProductModal}
-          fetchProducts={fetchProducts}
-          providers={providers}
-        />
+    <div className="p-5 w-full flex flex-col gap-2 max-h-screen overflow-y-scroll">
+      <div className="-z-10 absolute">
         {selectedProduct && (
           <>
             <ConfirmarEliminar
-              open={openDeleteProductModal}
-              setOpen={setOpenDeleteProductModal}
-              fetchProducts={fetchProducts}
+              open={openDelProd}
+              setOpen={setOpenDelProd}
+              fetchProducts={reset}
               product={selectedProduct}
             />
-            <UpdateProduct
-              open={openUpdateProd}
-              setOpen={setOpenUpdateProd}
-              fetchProducts={fetchProducts}
-              providers={providers}
-              product={selectedProduct}
-            />
-            <EditStock
-              open={openEditStock}
-              setOpen={setOpenEditStock}
-              fetchProducts={fetchProducts}
+            <CreateVariant
+              open={openCreateVar}
+              setOpen={setOpenCreateVar}
+              fetchProducts={reset}
               product={selectedProduct}
             />
           </>
         )}
-      </div>
-      <div className="flex flex-row gap-2 items-center">
-        <h1 className="font-bold text-xl">
-          {specific ? "Productos" : "Todos los productos"}
-        </h1>
-        {!specific && (
-          <Button
-            disabled={loading}
-            onClick={() => setOpenCreateProductModal(true)}
-            className="w-auto self-start px-3 py-5 bg-green-600 text-white hover:bg-green-700 active:bg-green-800"
-          >
-            <Image src={addIcon} alt={"Agregar Producto"} className="w-8" />
-            Agregar
-          </Button>
+        {selectedVariant && (
+          <DeleteVariant
+            open={openDelVar}
+            setOpen={setOpenDelVar}
+            fetchProducts={reset}
+            variant={selectedVariant}
+          />
         )}
+        <CreateProduct
+          open={openCreateProd}
+          setOpen={setOpenCreateProd}
+          fetchProducts={reset}
+          providers={providers}
+        />
+      </div>
+      <div className="flex flex-row items-center gap-2">
+        <h1 className="font-bold text-xl">Productos</h1>
+        <Button
+          onClick={() => setOpenCreateProd(true)}
+          className="bg-green-500 hover:bg-green-600"
+        >
+          Registrar
+        </Button>
+      </div>
+
+      <div className="flex flex-row gap-2 items-center">
+        <label>Buscar</label>
+        <input
+          disabled={loading}
+          className="p-1 bg-zinc-100 rounded-md"
+          placeholder="Buscar por Nombre o SKU"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
       {loading ? (
         <>
-          <Skeleton className="w-full h-10 my-5" />
-          <Skeleton className="w-full h-14" />
-          <Skeleton className="w-full h-12" />
-          <Skeleton className="w-full h-12" />
-          <Skeleton className="w-full h-12" />
-          <Skeleton className="w-full h-12" />
-          <Skeleton className="w-full h-12" />
+          <Skeleton className="w-full h-10" />
+          <Skeleton className="w-full h-8" />
+          <Skeleton className="w-full h-8" />
+          <Skeleton className="w-full h-8" />
+          <Skeleton className="w-full h-8" />
         </>
       ) : (
         <>
-          <div className="flex flex-row gap-3 items-center w-full my-2">
-            <label className="text-lg">Buscar producto</label>
-            <input
-              className="text-lg p-2 border-md bg-zinc-100 rounded-lg flex-grow"
-              placeholder="Buscar producto"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-            />
-          </div>
-
           <table>
             <thead>
               <tr>
-                <th className="p-1">Imágen</th>
-                <th className="p-1 text-start">SKU</th>
-                <th className="p-1 text-start">Nombre</th>
-                <th className="p-1 text-start">Stock</th>
-                <th className="p-1 text-start">Precio Unitario</th>
-                <th className="p-1 text-start">Proveedor</th>
-                <th className="p-1 text-start">Acciones</th>
+                <th className="p-1 border-2">Nombre</th>
+                <th className="p-1 border-2">Proveedor</th>
+                <th className="p-1 border-2">Variantes</th>
+                <th className="p-1 border-2">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {results.map((p: Product) => (
-                <tr key={p.id}>
-                  <td className="p-1 flex justify-center">
-                    <a href={p.pictureUrl + ""} target="_blank">
-                      <img src={p.pictureUrl + ""} className="w-16" />
-                    </a>
-                  </td>
-                  <td className="p-1 justify-center">{p.sku}</td>
-                  <td className="p-1 justify-center">{p.name}</td>
-                  <td className="p-1 justify-center">
-                    <div className="flex flex-row gap-2 items-center">
-                      {p.stock}{" "}
+                <>
+                  <tr>
+                    <td className="p-1 border-2">{p.name}</td>
+                    <td className="p-1 border-2">
+                      {getProviderName(p.providerId)}
+                    </td>
+                    <td className="p-1 border-2">
+                      {expandedRows.includes(p.id) ? (
+                        <Button onClick={() => showRow(p.id)} variant={"link"}>
+                          Ocultar
+                        </Button>
+                      ) : (
+                        <Button variant={"link"} onClick={() => showRow(p.id)}>
+                          {p.hasVariants ? "Ver variantes" : "Ver única"}
+                        </Button>
+                      )}
+                    </td>
+                    <td className="p-1 border-2">
                       <Button
+                        variant={"destructive"}
                         onClick={() => {
                           setSelectedProduct(p);
-                          setOpenEditStock(true);
+                          setOpenDelProd(true);
                         }}
-                        className="p-1 w-10"
                       >
-                        <Image src={Edit} alt="Editar" />
+                        Eliminar
                       </Button>
-                    </div>
-                  </td>
-                  <td className="p-1 justify-center">${p.price}</td>
-                  <td className="p-1 justify-center">
-                    {getProviderName(p.providerId)}
-                  </td>
-                  <td className="p-1 justify-center">
-                    <Button
-                      variant="outline"
-                      className="mr-1"
-                      onClick={() => {
-                        setSelectedProduct(p);
-                        setOpenUpdateProd(true);
-                      }}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      variant={"destructive"}
-                      onClick={() => openDeleteModal(p)}
-                    >
-                      Eliminar
-                    </Button>
-                  </td>
-                </tr>
+                      {p.hasVariants && (
+                        <Button
+                          className="ml-1"
+                          onClick={() => {
+                            setSelectedProduct(p);
+                            setOpenCreateVar(true);
+                          }}
+                        >
+                          Registrar Variante
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                  {expandedRows.includes(p.id) && (
+                    <tr>
+                      <td colSpan={4} className="border-2 p-2 bg-zinc-100">
+                        {variants.filter((v: Variation) => v.productId === p.id)
+                          .length === 0 ? (
+                          <p>No se encontraron variantes.</p>
+                        ) : (
+                          <table className="w-full">
+                            <thead>
+                              <tr>
+                                <th className="font-bold p-1 border-2">
+                                  Imágen
+                                </th>
+                                <th className="font-bold p-1 border-2">
+                                  Variante
+                                </th>
+                                <th className="font-bold p-1 border-2">SKU</th>
+                                <th className="font-bold p-1 border-2">
+                                  Precio Unitario
+                                </th>
+                                <th className="font-bold p-1 border-2">
+                                  Stock
+                                </th>
+                                <th className="font-bold p-1 border-2">
+                                  Acciones
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {variants
+                                .filter((v: Variation) => v.productId === p.id)
+                                .map((v: Variation) => (
+                                  <tr>
+                                    <td className="p-1 border-2">
+                                      <img
+                                        src={v.pictureUrl + ""}
+                                        className="w-16"
+                                      />
+                                    </td>
+                                    <td className="p-1 border-2">{v.name}</td>
+                                    <td className="p-1 border-2">{v.sku}</td>
+                                    <td className="p-1 border-2">{v.price}</td>
+                                    <td className="p-1 border-2">{v.stock}</td>
+                                    <td className="p-1 border-2">
+                                      {p.hasVariants && (
+                                        <Button
+                                          variant={"destructive"}
+                                          onClick={() => {
+                                            setSelectedVariant(v);
+                                            setOpenDelVar(true);
+                                          }}
+                                        >
+                                          Eliminar
+                                        </Button>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                </>
               ))}
             </tbody>
           </table>
           {results.length === 0 && (
-            <div className="text-center text-lg mt-3">
-              No se encontraron resultados
+            <div className="w-full text-center">
+              No se encontraron productos.
             </div>
+          )}
+          {search.trim() !== "" && (
+            <>
+              <h1 className="font-bold text-xl">Variantes</h1>
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    <th className="font-bold p-1 border-2">Imágen</th>
+                    <th className="font-bold p-1 border-2">Variante</th>
+                    <th className="font-bold p-1 border-2">SKU</th>
+                    <th className="font-bold p-1 border-2">Precio Unitario</th>
+                    <th className="font-bold p-1 border-2">Stock</th>
+                    <th className="font-bold p-1 border-2">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {varResults.map((v: Variation) => (
+                    <tr>
+                      <td className="p-1 border-2">
+                        <img src={v.pictureUrl + ""} className="w-16" />
+                      </td>
+
+                      <td className="p-1 border-2">{v.name}</td>
+                      <td className="p-1 border-2">{v.sku}</td>
+                      <td className="p-1 border-2">{v.price}</td>
+                      <td className="p-1 border-2">{v.stock}</td>
+                      <td className="p-1 border-2">
+                        <Button
+                          variant={"destructive"}
+                          onClick={() => {
+                            setSelectedVariant(v);
+                            setOpenDelVar(true);
+                          }}
+                        >
+                          Eliminar
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {varResults.length === 0 && (
+                <div className="w-full text-center">
+                  No se encontraron variantes.
+                </div>
+              )}
+            </>
           )}
         </>
       )}

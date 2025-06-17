@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import React from "react";
 import jwt from "jsonwebtoken";
-import { redirect } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import LateralMenu from "@/components/general/LateralMenu";
 import ProductDashboard from "@/components/products/ProductDashboard";
 

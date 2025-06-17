@@ -139,7 +139,11 @@ function ProveedoresOverview() {
                     <Button
                       variant={"link"}
                       onClick={() => {
-                        const link = "/proveedores/" + p.id + "/productos";
+                        const link =
+                          "/proveedores/" +
+                          p.id +
+                          "/productos?provider=" +
+                          p.name;
                         router.push(link);
                       }}
                     >

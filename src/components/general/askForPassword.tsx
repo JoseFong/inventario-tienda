@@ -24,10 +24,14 @@ function AskForPasswordModal({
   setOpen: any;
   openSecond: () => void;
 }) {
+  //useStates para form
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  //useState para manejar aspectos visuales
   const [seePassword, setSeePassword] = useState(false);
 
+  //Función que se ejecuta al presionar el botón
   async function checkPassword() {
     try {
       setLoading(true);

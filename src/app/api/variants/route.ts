@@ -1,8 +1,8 @@
-import { createProduct, getAllProducts, getProductsFromProvider } from "@/controllers/productController";
-import prisma from "@/libs/prisma";
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { cookies } from "next/headers"
+import { NextResponse } from "next/server"
 import jwt from "jsonwebtoken"
+import { createVariation, getAllVariations } from "@/controllers/variationController"
+import prisma from "@/libs/prisma"
 
 export async function GET(req:Request){
     try{
@@ -10,18 +10,10 @@ export async function GET(req:Request){
         const cookie = cookieStore.get("storeUser")
         if(!cookie) return NextResponse.json({message:"No está autorizado."},{status:400})
         const decoded:any = jwt.verify(cookie.value,process.env.JWT_SECRET!)
-        if(decoded.type!=="admin" && decoded.type!=="superadmin") return NextResponse.json({message:"No está autorizado."},{status:400})
+        if(decoded.type!=="admin" && decoded.type!=="superadmin" && decoded.type!=="empleado") return NextResponse.json({message:"No está autorizado."},{status:400})
 
-        const {searchParams} = new URL(req.url)
-        const providerId = searchParams.get("providerId")
-
-        if(providerId){
-            const products = await getProductsFromProvider(parseInt(providerId))
-            return NextResponse.json(products)
-        }
-
-        const products = await getAllProducts()
-        return NextResponse.json(products)
+        const variations = await getAllVariations()
+        return NextResponse.json(variations)
     }catch(e:any){
         return NextResponse.json({message:"Error 500: "+e.message},{status:500})
     }
@@ -34,31 +26,30 @@ export async function POST(req:Request){
         if(!cookie) return NextResponse.json({message:"No está autorizado."},{status:400})
         const decoded:any = jwt.verify(cookie.value,process.env.JWT_SECRET!)
         if(decoded.type!=="admin" && decoded.type!=="superadmin") return NextResponse.json({message:"No está autorizado."},{status:400})
+
         const data = await req.json()
-        
-        let product = await prisma.product.findFirst({
-            where:{
-                name: data.name
-            }
-        })
-        if(product) return NextResponse.json({message:"Ya existe un producto con ese nombre."},{status:400})
-        
+
         let variant = await prisma.variation.findFirst({
             where:{
                 name: data.variantName
             }
         })
+        if(variant?.name===data.variantName) return NextResponse.json({message:"Ya existe un producto con este nombre."},{status:400})
 
+            
         variant = await prisma.variation.findFirst({
             where:{
                 sku: data.sku
             }
         })
-        if(variant) return NextResponse.json({message:"Ya existe un producto con ese SKU."},{status:400})
-        
-        await createProduct(data)
+        if(variant) return NextResponse.json({message:"Ya existe un producto con este SKU."},{status:400})
+
+        await createVariation(data.productId,data)
+
         return NextResponse.json({status:200})
     }catch(e:any){
+        console.log(e.message)
         return NextResponse.json({message:"Error 500: "+e.message},{status:500})
     }
 }
+

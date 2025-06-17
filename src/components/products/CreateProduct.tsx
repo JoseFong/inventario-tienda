@@ -14,9 +14,9 @@ import { Button } from "../ui/button";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { isEmpty } from "@/utils/validatons";
-import { Provider } from "@/generated/prisma";
+import { Product, Provider } from "@/generated/prisma";
 
-function CreateProductModal({
+function CreateProduct({
   open,
   setOpen,
   fetchProducts,
@@ -27,20 +27,21 @@ function CreateProductModal({
   fetchProducts: () => void;
   providers: Provider[];
 }) {
-  const [sku, setSku] = useState("");
   const [name, setName] = useState("");
-  const [price, setPrice] = useState<any>();
-  const [stock, setStock] = useState<any>();
   const [hasVariants, setHasVariants] = useState(false);
   const [providerId, setProviderId] = useState<any>(0);
+  const [sku, setSku] = useState("");
+  const [variantName, setVariantName] = useState("");
 
   const [file, setFile] = useState<File>();
+  const [pictureUrl, setPictureUrl] = useState("");
+
+  const [price, setPrice] = useState<any>();
+  const [stock, setStock] = useState<any>();
+
   const [imgOption, setImgOption] = useState("link");
-  const [imgLink, setImgLink] = useState("");
   const [uploadedImage, setUploadedImage] = useState(false);
-
   const [loading, setLoading] = useState(false);
-
   const [loadingUploadedImage, setLoadingUploadedImage] = useState(false);
 
   async function upload() {
@@ -54,7 +55,7 @@ function CreateProductModal({
       const response = await axios.post("/api/files", data);
 
       if (response) {
-        setImgLink(response.data);
+        setPictureUrl(response.data);
         setUploadedImage(true);
       }
       setLoadingUploadedImage(false);
@@ -68,15 +69,38 @@ function CreateProductModal({
     }
   }
 
+  //Función que detecta cuando se cambia el archivo de la foto
   function handleChange(e: any) {
     setFile(e.target?.files?.[0]);
+  }
+
+  useEffect(() => {
+    setPictureUrl("");
+    setUploadedImage(false);
+  }, [imgOption]);
+
+  function reset() {
+    setSku("");
+    setName("");
+    setPrice(0);
+    setStock(0);
+    setHasVariants(false);
+    setPictureUrl("");
+    setImgOption("file");
+    setUploadedImage(false);
+    setVariantName("");
   }
 
   async function register() {
     try {
       setLoading(true);
 
-      if (isEmpty(sku) || isEmpty(name) || isEmpty(price) || isEmpty(stock)) {
+      if (
+        isEmpty(sku) ||
+        isEmpty(name) ||
+        isEmpty(price) ||
+        isEmpty(stock || (hasVariants && isEmpty(variantName)))
+      ) {
         throw new Error("Complete todos los campos.");
       }
 
@@ -87,22 +111,24 @@ function CreateProductModal({
 
       if (stock < 0) throw new Error("Ingrese un valor de Stock 0 o más.");
 
+      if (!hasVariants) setVariantName(name.trim());
+
       const data = {
         sku: sku.trim(),
         name: name.trim(),
         price: parseFloat(price),
         hasVariants: hasVariants,
         stock: parseInt(stock),
-        pictureUrl: imgLink.trim(),
+        pictureUrl: pictureUrl.trim(),
         providerId: parseInt(providerId),
+        variantName: variantName.trim(),
       };
 
       const res = await axios.post("/api/productos", data);
 
+      reset();
       fetchProducts();
-
       setLoading(false);
-
       setOpen(false);
     } catch (e: any) {
       setLoading(false);
@@ -114,22 +140,6 @@ function CreateProductModal({
     }
   }
 
-  useEffect(() => {
-    setImgLink("");
-    setUploadedImage(false);
-  }, [imgOption]);
-
-  useEffect(() => {
-    setSku("");
-    setName("");
-    setPrice(0);
-    setStock(0);
-    setHasVariants(false);
-    setImgLink("");
-    setImgOption("file");
-    setUploadedImage(false);
-  }, [open, setOpen]);
-
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger>
@@ -138,20 +148,57 @@ function CreateProductModal({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Registrar Producto</AlertDialogTitle>
-          <AlertDialogDescription className="text-black flex flex-col gap-1 max-h-[300px] overflow-y-scroll items-start">
-            <label>SKU</label>
-            <input
-              className="bg-zinc-100 p-1 rounded-md w-full"
-              placeholder="SKU"
-              value={sku}
-              onChange={(e) => setSku(e.target.value)}
-            />
+          <AlertDialogDescription className="text-black flex flex-col gap-1 max-h-[400px] overflow-y-scroll">
             <label>Nombre</label>
             <input
               className="bg-zinc-100 p-1 rounded-md w-full"
               placeholder="Nombre"
               value={name}
               onChange={(e) => setName(e.target.value)}
+            />
+            <label>Proveedor</label>
+            <select
+              disabled={providers.length === 0}
+              className="bg-zinc-100 p-1 rounded-md w-full"
+              value={providerId}
+              onChange={(e) => setProviderId(e.target.value)}
+            >
+              <option value={0}>Seleccione un proveedor</option>
+              {providers.map((p: Provider) => (
+                <option value={p.id}>{p.name}</option>
+              ))}
+            </select>
+            <div className="flex flex-row gap-2">
+              <label>¿El producto tiene variantes?</label>
+              <input
+                checked={hasVariants}
+                onChange={() => setHasVariants(!hasVariants)}
+                type="checkbox"
+              />
+            </div>
+            <h2 className="font-bold text-lg mt-2">
+              {hasVariants
+                ? "Información de variante inicial"
+                : "Información de variante única"}
+            </h2>
+            {hasVariants && (
+              <>
+                <label>Nombre</label>
+                <input
+                  className="bg-zinc-100 p-1 rounded-md w-full"
+                  placeholder="Nombre"
+                  value={variantName}
+                  onChange={(e) => setVariantName(e.target.value)}
+                />
+              </>
+            )}
+
+            <label>SKU</label>
+            <input
+              className="bg-zinc-100 p-1 rounded-md w-full"
+              placeholder="SKU"
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
             />
             <label>Precio</label>
             <input
@@ -169,26 +216,6 @@ function CreateProductModal({
               value={stock}
               onChange={(e) => setStock(e.target.value)}
             />
-            <div className="flex flex-row gap-2">
-              <label>¿El producto tiene variantes?</label>
-              <input
-                checked={hasVariants}
-                onChange={() => setHasVariants(!hasVariants)}
-                type="checkbox"
-              />
-            </div>
-            <label>Proveedor</label>
-            <select
-              disabled={providers.length === 0}
-              className="bg-zinc-100 p-1 rounded-md w-full"
-              value={providerId}
-              onChange={(e) => setProviderId(e.target.value)}
-            >
-              <option value={0}>Seleccione un proveedor</option>
-              {providers.map((p: Provider) => (
-                <option value={p.id}>{p.name}</option>
-              ))}
-            </select>
             <div className="flex flex-row gap-1 items-center my-2">
               <label>Seleccionar imagen de: </label>
               <select
@@ -204,8 +231,8 @@ function CreateProductModal({
               <input
                 className="bg-zinc-100 p-1 rounded-md w-full"
                 placeholder="Copie link aqui"
-                value={imgLink}
-                onChange={(e) => setImgLink(e.target.value)}
+                value={pictureUrl}
+                onChange={(e) => setPictureUrl(e.target.value)}
               />
             ) : (
               <>
@@ -243,15 +270,13 @@ function CreateProductModal({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          {loading ? (
-            <Button disabled>Cargando...</Button>
-          ) : (
-            <Button onClick={register}>Registrar</Button>
-          )}
+          <Button disabled={loading} onClick={register}>
+            {loading ? "Registrando..." : "Registrar"}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
 }
 
-export default CreateProductModal;
+export default CreateProduct;

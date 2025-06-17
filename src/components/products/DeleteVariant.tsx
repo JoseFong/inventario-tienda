@@ -13,27 +13,27 @@ import {
 import { Button } from "../ui/button";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Product } from "@/generated/prisma";
+import { Product, Variation } from "@/generated/prisma";
 
-function ConfirmarEliminar({
+function DeleteVariant({
   open,
   setOpen,
   fetchProducts,
-  product,
+  variant,
 }: {
   open: any;
   setOpen: any;
   fetchProducts: () => void;
-  product: Product;
+  variant: Variation;
 }) {
   //useStates para manejar aspectos visuales
   const [loading, setLoading] = useState(false);
 
   //función que se ejecuta al presionar eliminar
-  async function deleteProduct() {
+  async function deleteVariant() {
     try {
       setLoading(true);
-      const res = await axios.delete("/api/productos/" + product.id);
+      const res = await axios.delete("/api/variants/" + variant.id);
       fetchProducts();
       setLoading(false);
       setOpen(false);
@@ -55,7 +55,7 @@ function ConfirmarEliminar({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            ¿Está seguro que quiere eliminar el producto {product.name}?
+            ¿Está seguro que quiere eliminar la variante {variant.name}?
           </AlertDialogTitle>
           <AlertDialogDescription className="text-red-500">
             ¡Esta acción es permanente!
@@ -63,19 +63,17 @@ function ConfirmarEliminar({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          {loading ? (
-            <Button disabled variant={"destructive"}>
-              Eliminando...
-            </Button>
-          ) : (
-            <Button onClick={deleteProduct} variant={"destructive"}>
-              Eliminar
-            </Button>
-          )}
+          <Button
+            variant={"destructive"}
+            onClick={deleteVariant}
+            disabled={loading}
+          >
+            {loading ? "Eliminando..." : "Eliminar"}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
 }
 
-export default ConfirmarEliminar;
+export default DeleteVariant;
