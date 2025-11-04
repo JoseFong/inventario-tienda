@@ -46,13 +46,6 @@ export async function PATCH(req:Request){
         })
         if(product && product.id!==idNum) return NextResponse.json({message:"Ya existe un producto con ese nombre."},{status:400})
         
-            product = await prisma.product.findFirst({
-            where:{
-                sku: data.sku
-            }
-        })
-        if(product && product.id!==idNum) return NextResponse.json({message:"Ya existe un producto con ese SKU."},{status:400})
-        
             await updateProduct(idNum,data)
 
         return NextResponse.json({status:200})

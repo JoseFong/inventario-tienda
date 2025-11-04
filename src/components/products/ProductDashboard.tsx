@@ -11,7 +11,13 @@ import Image from "next/image";
 import DeleteVariant from "./DeleteVariant";
 import CreateVariant from "./CreateVariant";
 
-function ProductDashboard() {
+function ProductDashboard({
+  endpoint,
+  specific,
+}: {
+  endpoint: any;
+  specific: any;
+}) {
   const [products, setProducts] = useState<Product[]>([]);
   const [results, setResults] = useState<Product[]>([]);
   const [providers, setProviders] = useState<Provider[]>([]);
